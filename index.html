@@ -1,18 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Anual JS</title>
     <link rel="stylesheet" href="./style.css">
-    <title>CURSO DE JAVASCRIPT</title>
+
 </head>
+
 <body>
-    <section>
-        <h1>Agenda Semanal</h1>
-        <p>Simulador de agenda semanal</p>
-    </section>
+    <h1>📅 Agenda Anual</h1>
+
+    <!-- Formulario -->
+    <form id="agendaForm">
+        <select id="mes">
+            <option value="Enero">Enero</option>
+            <option value="Febrero">Febrero</option>
+            <option value="Marzo">Marzo</option>
+            <option value="Abril">Abril</option>
+            <option value="Mayo">Mayo</option>
+            <option value="Junio">Junio</option>
+            <option value="Julio">Julio</option>
+            <option value="Agosto">Agosto</option>
+            <option value="Septiembre">Septiembre</option>
+            <option value="Octubre">Octubre</option>
+            <option value="Noviembre">Noviembre</option>
+            <option value="Diciembre">Diciembre</option>
+        </select>
+
+        <input type="number" id="dia" placeholder="Día" min="1" max="31" required>
+        <input type="text" id="actividad" placeholder="Actividad" required>
+        <button type="submit">Agregar</button>
+    </form>
+
+    <!-- Tabla -->
+    <table id="agendaTable">
+        <thead>
+            <tr>
+                <th>Día</th>
+                <th>Mes</th>
+                <th>Actividad</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
 
     <script src="./main.js"></script>
 </body>
+
 </html>

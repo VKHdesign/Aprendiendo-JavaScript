@@ -1,3 +1,52 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background: #f4f6f8;
+}
+
 h1 {
-    color: red;
+    text-align: center;
+}
+
+form {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+input,
+select,
+button {
+    padding: 5px;
+    font-size: 14px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+th,
+td {
+    padding: 8px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+button {
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: #e74c3c;
+}
+
+.editar {
+    background: #ffce54;
+}
+
+.eliminar {
+    background: #e74c3c;
+    color: white;
 }
