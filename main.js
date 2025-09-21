@@ -93,15 +93,6 @@ function mostrarFechaHoraActual() {
     if (!infoFechaHora) {
         infoFechaHora = document.createElement('div');
         infoFechaHora.id = 'infoFechaHora';
-        infoFechaHora.style.cssText = `
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            font-family: Arial, sans-serif;
-        `;
 
         // Insertar antes del formulario (asumiendo que existe un contenedor)
         const contenedor = form.parentNode;
@@ -110,48 +101,27 @@ function mostrarFechaHoraActual() {
 
     if (fechaHoraActual) {
         infoFechaHora.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                <div>
-                    <h3 style="margin: 0 0 5px 0; font-size: 1.2em;">📅 Información Actual</h3>
-                    <p style="margin: 0; font-size: 0.9em; opacity: 0.9;">
+            <div class="info-fecha-container">
+                <div class="info-fecha-left">
+                    <h3>📅 Información Actual</h3>
+                    <p>
                         ${fechaHoraActual.diaSemana}, ${fechaHoraActual.dia} de ${fechaHoraActual.mes} de ${fechaHoraActual.año}
                     </p>
                 </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 1.5em; font-weight: bold; margin-bottom: 5px;">
+                <div class="info-fecha-right">
+                    <div class="hora-display">
                         ⏰ ${fechaHoraActual.hora}
                     </div>
-                    <div style="font-size: 0.8em; opacity: 0.8;">
+                    <div class="timezone-display">
                         ${fechaHoraActual.timezone}
                     </div>
                 </div>
             </div>
-            <div style="margin-top: 10px;">
-                <button onclick="actualizarFechaHora()" style="
-                    background: rgba(255,255,255,0.2);
-                    color: white;
-                    border: 1px solid rgba(255,255,255,0.3);
-                    padding: 8px 15px;
-                    border-radius: 20px;
-                    cursor: pointer;
-                    font-size: 0.9em;
-                    transition: all 0.3s ease;
-                " onmouseover="this.style.background='rgba(255,255,255,0.3)'" 
-                   onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+            <div class="botones-fecha-container">
+                <button onclick="actualizarFechaHora()" class="btn-fecha">
                     🔄 Actualizar Fecha/Hora
                 </button>
-                <button onclick="usarFechaActualEnFormulario()" style="
-                    background: rgba(255,255,255,0.2);
-                    color: white;
-                    border: 1px solid rgba(255,255,255,0.3);
-                    padding: 8px 15px;
-                    border-radius: 20px;
-                    cursor: pointer;
-                    font-size: 0.9em;
-                    margin-left: 10px;
-                    transition: all 0.3s ease;
-                " onmouseover="this.style.background='rgba(255,255,255,0.3)'" 
-                   onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                <button onclick="usarFechaActualEnFormulario()" class="btn-fecha">
                     📝 Usar Fecha Actual
                 </button>
             </div>
@@ -210,19 +180,7 @@ async function actualizarFechaHora() {
 function mostrarNotificacion(mensaje, tipo = 'info') {
     // Crear elemento de notificación
     const notificacion = document.createElement('div');
-    notificacion.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        border-radius: 8px;
-        color: white;
-        font-weight: bold;
-        z-index: 1000;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        max-width: 300px;
-        animation: slideIn 0.3s ease-out;
-    `;
+    notificacion.className = 'notificacion';
 
     // Colores según el tipo
     const colores = {
@@ -235,20 +193,9 @@ function mostrarNotificacion(mensaje, tipo = 'info') {
     notificacion.style.background = colores[tipo] || colores.info;
     notificacion.textContent = mensaje;
 
-    // Agregar animación CSS
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-    `;
-
+    // Agregar animación CSS (solo si no existe)
     if (!document.head.querySelector('style[data-notifications]')) {
+        const style = document.createElement('style');
         style.setAttribute('data-notifications', 'true');
         document.head.appendChild(style);
     }
@@ -332,9 +279,9 @@ function renderAgenda() {
     if (agenda.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="4" style="text-align: center; padding: 20px; color: #666;">
+                <td colspan="4" class="sin-actividades-mensaje">
                     📅 No hay actividades programadas
-                    <br><small>¡Agrega tu primera actividad!</small>
+                    <small>¡Agrega tu primera actividad!</small>
                 </td>
             </tr>
         `;
@@ -351,14 +298,13 @@ function renderAgenda() {
             item.mes === fechaHoraActual.mes;
 
         if (esHoy) {
-            row.style.backgroundColor = '#e3f2fd';
-            row.style.border = '2px solid #2196F3';
+            row.className = 'actividad-hoy';
         }
 
         row.innerHTML = `
-            <td>${item.dia} ${esHoy ? '🔹' : ''}</td>
+            <td>${item.dia}${esHoy ? '<span class="indicador-hoy-icono">🔹</span>' : ''}</td>
             <td>${item.mes}</td>
-            <td>${item.actividad} ${esHoy ? '<span style="color: #2196F3; font-weight: bold;">(HOY)</span>' : ''}</td>
+            <td>${item.actividad}${esHoy ? '<span class="indicador-hoy-texto">(HOY)</span>' : ''}</td>
             <td>
                 <button class="editar" onclick="editarActividad(${index})">✏️ Editar</button>
                 <button class="eliminar" onclick="eliminarActividad(${index})">🗑️ Eliminar</button>

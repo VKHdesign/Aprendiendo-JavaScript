@@ -50,3 +50,194 @@ button {
     background: #e74c3c;
     color: white;
 }
+
+/* Estilos para el panel de información de fecha/hora */
+#infoFechaHora {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+}
+
+/* Contenedor flexible para la información de fecha */
+.info-fecha-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Sección izquierda del panel de fecha */
+.info-fecha-left h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.2em;
+}
+
+.info-fecha-left p {
+    margin: 0;
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+/* Sección derecha del panel de fecha */
+.info-fecha-right {
+    text-align: right;
+}
+
+.hora-display {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.timezone-display {
+    font-size: 0.8em;
+    opacity: 0.8;
+}
+
+/* Contenedor de botones en el panel */
+.botones-fecha-container {
+    margin-top: 10px;
+}
+
+/* Botones del panel de fecha */
+.btn-fecha {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+    margin-left: 10px;
+}
+
+.btn-fecha:first-child {
+    margin-left: 0;
+}
+
+.btn-fecha:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Estilos para notificaciones */
+.notificacion {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    max-width: 300px;
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Animaciones para notificaciones */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Estilos para tabla cuando no hay actividades */
+.sin-actividades-mensaje {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.sin-actividades-mensaje small {
+    display: block;
+    margin-top: 5px;
+}
+
+/* Estilos para actividades de hoy en la tabla */
+.actividad-hoy {
+    background-color: #e3f2fd !important;
+    border: 2px solid #2196F3 !important;
+}
+
+.indicador-hoy-icono {
+    margin-left: 5px;
+}
+
+.indicador-hoy-texto {
+    color: #2196F3;
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+/* Responsive para el panel de fecha */
+@media (max-width: 768px) {
+    .info-fecha-container {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .info-fecha-right {
+        text-align: center;
+    }
+
+    .botones-fecha-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .btn-fecha {
+        margin-left: 0;
+        min-width: 200px;
+    }
+
+    .notificacion {
+        left: 20px;
+        right: 20px;
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    #infoFechaHora {
+        padding: 12px;
+    }
+
+    .hora-display {
+        font-size: 1.3em;
+    }
+
+    .info-fecha-left h3 {
+        font-size: 1.1em;
+    }
+
+    .btn-fecha {
+        padding: 10px 15px;
+        font-size: 0.85em;
+    }
+}
