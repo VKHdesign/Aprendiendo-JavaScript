@@ -80,7 +80,6 @@ function mostrarNotificacion(mensaje, tipo = 'info', duracion = 4000) {
     // Verificar si Toastify está disponible
     if (typeof Toastify === 'undefined') {
         console.warn('Toastify no está cargado. Usando fallback.');
-        // Fallback a la función anterior si Toastify no está disponible
         mostrarNotificacionFallback(mensaje, tipo);
         return;
     }
@@ -119,11 +118,11 @@ function mostrarNotificacion(mensaje, tipo = 'info', duracion = 4000) {
     // Crear la notificación con Toastify
     Toastify({
         text: config.text,
-        duration: tipo === 'loading' ? -1 : duracion, // Loading no se cierra automáticamente
+        duration: tipo === 'loading' ? -1 : duracion,
         close: true,
-        gravity: "top", // `top` o `bottom`
-        position: "right", // `left`, `center` o `right`
-        stopOnFocus: true, // Pausa cuando el usuario pasa el mouse
+        gravity: "top",
+        position: "right",
+        stopOnFocus: true,
         style: {
             background: config.backgroundColor,
             borderRadius: "10px",
@@ -135,12 +134,10 @@ function mostrarNotificacion(mensaje, tipo = 'info', duracion = 4000) {
         },
         className: config.className,
         onClick: function () {
-            // Opcional: acción al hacer click
             console.log('Notificación clickeada:', mensaje);
         }
     }).showToast();
 
-    // Log para debug
     console.log(`📢 [${tipo.toUpperCase()}] ${mensaje}`);
 }
 
@@ -315,15 +312,42 @@ function obtenerActividadesHoy() {
     return actividadesHoy;
 }
 
-// Función para mostrar actividades de hoy
-function mostrarActividadesHoy(actividadesHoy) {
-    let mensaje = `📅 Actividades para hoy ${fechaHoraActual.dia} de ${fechaHoraActual.mes}:\n\n`;
+// Función para mostrar actividades de hoy con SweetAlert2
+async function mostrarActividadesHoy(actividadesHoy) {
+    // Verificar si SweetAlert2 está disponible
+    if (typeof Swal === 'undefined') {
+        // Fallback a alert básico
+        let mensaje = `📅 Actividades para hoy ${fechaHoraActual.dia} de ${fechaHoraActual.mes}:\n\n`;
+        actividadesHoy.forEach((actividad, index) => {
+            mensaje += `${index + 1}. ${actividad.actividad}\n`;
+        });
+        alert(mensaje);
+        return;
+    }
 
+    // Crear HTML para mostrar las actividades
+    let actividadesHTML = '';
     actividadesHoy.forEach((actividad, index) => {
-        mensaje += `${index + 1}. ${actividad.actividad}\n`;
+        actividadesHTML += `
+            <div style="text-align: left; margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 5px;">
+                <strong>${index + 1}.</strong> ${actividad.actividad}
+            </div>
+        `;
     });
 
-    alert(mensaje);
+    await Swal.fire({
+        title: `📅 Actividades de Hoy`,
+        html: `
+            <div style="text-align: center; margin-bottom: 15px;">
+                <p><strong>${fechaHoraActual.diaSemana}, ${fechaHoraActual.dia} de ${fechaHoraActual.mes}</strong></p>
+            </div>
+            <div>${actividadesHTML}</div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#3b82f6',
+        width: '500px'
+    });
 }
 
 // Función para guardar en localStorage
@@ -427,38 +451,216 @@ form.addEventListener("submit", e => {
     autoCompletarFechaActual();
 });
 
-// Editar actividad con notificaciones
-function editarActividad(index) {
+// 🔥 FUNCIÓN EDITAR ACTIVIDAD CON SWEETALERT2
+async function editarActividad(index) {
     const item = agenda[index];
-    const nuevaActividad = prompt(`Nueva actividad para el ${item.dia} de ${item.mes}:`, item.actividad);
-    if (nuevaActividad !== null) {
-        agenda[index].actividad = nuevaActividad.trim() || "Sin actividad";
+
+    // Verificar si SweetAlert2 está disponible
+    if (typeof Swal === 'undefined') {
+        // Fallback a prompt básico
+        const nuevaActividad = prompt(`Nueva actividad para el ${item.dia} de ${item.mes}:`, item.actividad);
+        if (nuevaActividad !== null) {
+            agenda[index].actividad = nuevaActividad.trim() || "Sin actividad";
+            agenda[index].fechaModificacion = fechaHoraActual ? fechaHoraActual.timestamp : Date.now();
+            guardarEnLocalStorage();
+            renderAgenda();
+            notificarExito('Actividad editada correctamente');
+        }
+        return;
+    }
+
+    // Usar SweetAlert2 para editar
+    const { value: nuevaActividad } = await Swal.fire({
+        title: '✏️ Editar Actividad',
+        html: `
+            <div style="text-align: left; margin-bottom: 15px;">
+                <p><strong>Fecha:</strong> ${item.dia} de ${item.mes}</p>
+                <p><strong>Actividad actual:</strong></p>
+            </div>
+        `,
+        input: 'textarea',
+        inputValue: item.actividad,
+        inputPlaceholder: 'Escribe la nueva actividad...',
+        inputAttributes: {
+            'aria-label': 'Nueva actividad',
+            style: 'min-height: 100px; font-size: 14px;'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Guardar Cambios',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#3b82f6',
+        cancelButtonColor: '#6b7280',
+        inputValidator: (value) => {
+            if (!value || !value.trim()) {
+                return 'La actividad no puede estar vacía';
+            }
+            if (value.trim().length < 3) {
+                return 'La actividad debe tener al menos 3 caracteres';
+            }
+            return null;
+        }
+    });
+
+    if (nuevaActividad) {
+        agenda[index].actividad = nuevaActividad.trim();
         agenda[index].fechaModificacion = fechaHoraActual ? fechaHoraActual.timestamp : Date.now();
         guardarEnLocalStorage();
         renderAgenda();
+
+        // Notificación de éxito con SweetAlert2
+        await Swal.fire({
+            title: '✅ ¡Actividad Actualizada!',
+            text: 'Los cambios se guardaron correctamente',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+        });
+
         notificarExito('Actividad editada correctamente');
     }
 }
 
-// Eliminar actividad con notificaciones
-function eliminarActividad(index) {
-    if (confirm("¿Seguro que quieres eliminar esta actividad?")) {
-        const actividad = agenda[index];
+// 🔥 FUNCIÓN ELIMINAR ACTIVIDAD CON SWEETALERT2
+async function eliminarActividad(index) {
+    const actividad = agenda[index];
+
+    // Verificar si SweetAlert2 está disponible
+    if (typeof Swal === 'undefined') {
+        // Fallback a confirm básico
+        if (confirm("¿Seguro que quieres eliminar esta actividad?")) {
+            agenda.splice(index, 1);
+            guardarEnLocalStorage();
+            renderAgenda();
+            notificarExito(`Actividad del ${actividad.dia} de ${actividad.mes} eliminada`);
+        }
+        return;
+    }
+
+    // Usar SweetAlert2 para confirmar eliminación
+    const result = await Swal.fire({
+        title: '🗑️ ¿Eliminar Actividad?',
+        html: `
+            <div style="text-align: left; margin: 20px 0;">
+                <p><strong>Fecha:</strong> ${actividad.dia} de ${actividad.mes}</p>
+                <p><strong>Actividad:</strong></p>
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 5px; border-left: 4px solid #dc3545;">
+                    ${actividad.actividad}
+                </div>
+            </div>
+            <p style="color: #dc3545; font-weight: 500; margin-top: 15px;">
+                ⚠️ Esta acción no se puede deshacer
+            </p>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, Eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true,
+        focusCancel: true
+    });
+
+    if (result.isConfirmed) {
+        // Eliminar la actividad
         agenda.splice(index, 1);
         guardarEnLocalStorage();
         renderAgenda();
+
+        // Mostrar confirmación de eliminación
+        await Swal.fire({
+            title: '🗑️ Actividad Eliminada',
+            text: `La actividad del ${actividad.dia} de ${actividad.mes} fue eliminada correctamente`,
+            icon: 'success',
+            timer: 3000,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+        });
+
         notificarExito(`Actividad del ${actividad.dia} de ${actividad.mes} eliminada`);
     }
 }
 
-// Función para limpiar todas las actividades
-function limpiarTodasLasActividades() {
-    if (confirm("¿Seguro que quieres eliminar TODAS las actividades? Esta acción no se puede deshacer.")) {
-        const cantidadEliminada = agenda.length;
+// 🔥 FUNCIÓN LIMPIAR TODAS LAS ACTIVIDADES CON SWEETALERT2
+async function limpiarTodasLasActividades() {
+    // Verificar si SweetAlert2 está disponible
+    if (typeof Swal === 'undefined') {
+        // Fallback a confirm básico
+        if (confirm("¿Seguro que quieres eliminar TODAS las actividades? Esta acción no se puede deshacer.")) {
+            const cantidadEliminada = agenda.length;
+            agenda = [];
+            guardarEnLocalStorage();
+            renderAgenda();
+            notificarAdvertencia(`${cantidadEliminada} actividades han sido eliminadas`);
+        }
+        return;
+    }
+
+    const cantidadActividades = agenda.length;
+
+    if (cantidadActividades === 0) {
+        await Swal.fire({
+            title: 'No hay actividades',
+            text: 'No tienes actividades para eliminar',
+            icon: 'info',
+            confirmButtonColor: '#3b82f6'
+        });
+        return;
+    }
+
+    // Usar SweetAlert2 para confirmar eliminación masiva
+    const result = await Swal.fire({
+        title: '🚨 ¿Eliminar TODAS las Actividades?',
+        html: `
+            <div style="text-align: center; margin: 20px 0;">
+                <p style="font-size: 16px; margin-bottom: 15px;">
+                    Estás a punto de eliminar <strong>${cantidadActividades} actividades</strong>
+                </p>
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <p style="color: #856404; font-weight: 500; margin: 0;">
+                        ⚠️ Esta acción NO se puede deshacer
+                    </p>
+                </div>
+                <p style="color: #6c757d;">
+                    Se eliminará toda tu agenda permanentemente
+                </p>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, Eliminar Todo',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true,
+        focusCancel: true,
+        input: 'checkbox',
+        inputValue: 0,
+        inputPlaceholder: 'Confirmo que quiero eliminar todas las actividades',
+        inputValidator: (result) => {
+            return !result && 'Debes confirmar la eliminación marcando la casilla';
+        }
+    });
+
+    if (result.isConfirmed) {
+        // Eliminar todas las actividades
         agenda = [];
         guardarEnLocalStorage();
         renderAgenda();
-        notificarAdvertencia(`${cantidadEliminada} actividades han sido eliminadas`);
+
+        // Mostrar confirmación de eliminación
+        await Swal.fire({
+            title: '🗑️ Todas las Actividades Eliminadas',
+            text: `Se eliminaron ${cantidadActividades} actividades correctamente`,
+            icon: 'success',
+            confirmButtonColor: '#3b82f6',
+            timer: 4000
+        });
+
+        notificarAdvertencia(`${cantidadActividades} actividades han sido eliminadas`);
     }
 }
 
@@ -481,12 +683,18 @@ window.notificarCargando = notificarCargando;
 document.addEventListener('DOMContentLoaded', async function () {
     console.log('🚀 Iniciando agenda anual...');
 
-    // Verificar si Toastify está cargado
+    // Verificar si las librerías están cargadas
     if (typeof Toastify !== 'undefined') {
         console.log('✅ Toastify cargado correctamente');
         notificarInfo('🚀 Agenda anual iniciando...');
     } else {
         console.warn('⚠️ Toastify no está disponible, usando notificaciones básicas');
+    }
+
+    if (typeof Swal !== 'undefined') {
+        console.log('✅ SweetAlert2 cargado correctamente');
+    } else {
+        console.warn('⚠️ SweetAlert2 no está disponible, usando confirmaciones básicas');
     }
 
     cargarDesdeLocalStorage();
