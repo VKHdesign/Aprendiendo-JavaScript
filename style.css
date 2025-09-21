@@ -1,7 +1,7 @@
 body {
     font-family: Arial, sans-serif;
     padding: 20px;
-    background: #f4f6f8;
+    background: #d55b4e;
 }
 
 h1 {
@@ -31,15 +31,20 @@ table {
 th,
 td {
     padding: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid #dddddd;
     text-align: center;
+    background-color: #666;
+}
+
+tbody {
+    color: white;
 }
 
 button {
     cursor: pointer;
     padding: 5px 10px;
     border-radius: 4px;
-    background-color: #e74c3c;
+    background-color: #3bb199;
 }
 
 .editar {
@@ -48,7 +53,7 @@ button {
 
 .eliminar {
     background: #e74c3c;
-    color: white;
+    color: black;
 }
 
 /* Estilos para el panel de información de fecha/hora */
@@ -126,7 +131,7 @@ button {
 }
 
 /* Estilos para notificaciones */
-.notificacion {
+/* .notificacion {
     position: fixed;
     top: 20px;
     right: 20px;
@@ -138,7 +143,9 @@ button {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     max-width: 300px;
     animation: slideIn 0.3s ease-out;
-}
+} */
+
+
 
 /* Animaciones para notificaciones */
 @keyframes slideIn {

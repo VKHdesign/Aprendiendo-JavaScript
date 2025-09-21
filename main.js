@@ -4,14 +4,13 @@ const mesesDias = {
 };
 
 let agenda = [];
-let fechaHoraActual = null; // Variable para almacenar la fecha/hora actual
+let fechaHoraActual = null;
 const form = document.getElementById("agendaForm");
 const tableBody = document.querySelector("#agendaTable tbody");
 
 // Función para obtener fecha y hora actual desde API
 async function obtenerFechaHoraActual() {
     try {
-        // API pública para obtener fecha/hora mundial
         const response = await fetch('http://worldtimeapi.org/api/timezone/America/Argentina/Buenos_Aires');
 
         if (!response.ok) {
@@ -19,8 +18,6 @@ async function obtenerFechaHoraActual() {
         }
 
         const data = await response.json();
-
-        // Procesar los datos obtenidos
         const fechaCompleta = new Date(data.datetime);
 
         fechaHoraActual = {
@@ -35,29 +32,23 @@ async function obtenerFechaHoraActual() {
             utc_offset: data.utc_offset
         };
 
-        // Capitalizar primera letra del mes
         fechaHoraActual.mes = fechaHoraActual.mes.charAt(0).toUpperCase() + fechaHoraActual.mes.slice(1);
         fechaHoraActual.diaSemana = fechaHoraActual.diaSemana.charAt(0).toUpperCase() + fechaHoraActual.diaSemana.slice(1);
 
         console.log('📅 Fecha y hora actual obtenida:', fechaHoraActual);
 
-        // Mostrar información en la interfaz
         mostrarFechaHoraActual();
-
-        // Auto-completar formulario con fecha actual
         autoCompletarFechaActual();
 
         return fechaHoraActual;
 
     } catch (error) {
         console.error('❌ Error al obtener fecha/hora actual:', error);
-
-        // Fallback: usar fecha local del navegador
         console.log('🔄 Usando fecha local como respaldo...');
         usarFechaLocal();
 
-        // Mostrar notificación de error
-        mostrarNotificacion('No se pudo conectar al servidor de tiempo. Usando fecha local.', 'warning');
+        // Usar Toastify para mostrar error
+        mostrarNotificacion('⚠️ No se pudo conectar al servidor de tiempo. Usando fecha local.', 'warning');
     }
 }
 
@@ -77,7 +68,6 @@ function usarFechaLocal() {
         utc_offset: 'Local'
     };
 
-    // Capitalizar primera letra
     fechaHoraActual.mes = fechaHoraActual.mes.charAt(0).toUpperCase() + fechaHoraActual.mes.slice(1);
     fechaHoraActual.diaSemana = fechaHoraActual.diaSemana.charAt(0).toUpperCase() + fechaHoraActual.diaSemana.slice(1);
 
@@ -85,16 +75,144 @@ function usarFechaLocal() {
     autoCompletarFechaActual();
 }
 
+// ✨ FUNCIÓN MEJORADA CON TOASTIFY
+function mostrarNotificacion(mensaje, tipo = 'info', duracion = 4000) {
+    // Verificar si Toastify está disponible
+    if (typeof Toastify === 'undefined') {
+        console.warn('Toastify no está cargado. Usando fallback.');
+        // Fallback a la función anterior si Toastify no está disponible
+        mostrarNotificacionFallback(mensaje, tipo);
+        return;
+    }
+
+    // Configuración de colores y estilos por tipo
+    const configuraciones = {
+        success: {
+            backgroundColor: "linear-gradient(135deg, #4CAF50, #45a049)",
+            text: `✅ ${mensaje}`,
+            className: "toast-success"
+        },
+        error: {
+            backgroundColor: "linear-gradient(135deg, #f44336, #d32f2f)",
+            text: `❌ ${mensaje}`,
+            className: "toast-error"
+        },
+        warning: {
+            backgroundColor: "linear-gradient(135deg, #ff9800, #f57c00)",
+            text: `⚠️ ${mensaje}`,
+            className: "toast-warning"
+        },
+        info: {
+            backgroundColor: "linear-gradient(135deg, #2196F3, #1976d2)",
+            text: `ℹ️ ${mensaje}`,
+            className: "toast-info"
+        },
+        loading: {
+            backgroundColor: "linear-gradient(135deg, #9c27b0, #7b1fa2)",
+            text: `⏳ ${mensaje}`,
+            className: "toast-loading"
+        }
+    };
+
+    const config = configuraciones[tipo] || configuraciones.info;
+
+    // Crear la notificación con Toastify
+    Toastify({
+        text: config.text,
+        duration: tipo === 'loading' ? -1 : duracion, // Loading no se cierra automáticamente
+        close: true,
+        gravity: "top", // `top` o `bottom`
+        position: "right", // `left`, `center` o `right`
+        stopOnFocus: true, // Pausa cuando el usuario pasa el mouse
+        style: {
+            background: config.backgroundColor,
+            borderRadius: "10px",
+            fontWeight: "600",
+            fontSize: "14px",
+            padding: "12px 20px",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+            border: "none"
+        },
+        className: config.className,
+        onClick: function () {
+            // Opcional: acción al hacer click
+            console.log('Notificación clickeada:', mensaje);
+        }
+    }).showToast();
+
+    // Log para debug
+    console.log(`📢 [${tipo.toUpperCase()}] ${mensaje}`);
+}
+
+// Función fallback para cuando Toastify no está disponible
+function mostrarNotificacionFallback(mensaje, tipo = 'info') {
+    const notificacion = document.createElement('div');
+    notificacion.className = 'notificacion-fallback';
+
+    const colores = {
+        success: '#4CAF50',
+        error: '#f44336',
+        warning: '#ff9800',
+        info: '#2196F3'
+    };
+
+    notificacion.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: bold;
+        z-index: 1000;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        max-width: 300px;
+        background: ${colores[tipo] || colores.info};
+        animation: slideIn 0.3s ease-out;
+    `;
+
+    notificacion.textContent = mensaje;
+    document.body.appendChild(notificacion);
+
+    setTimeout(() => {
+        notificacion.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => {
+            if (notificacion.parentNode) {
+                notificacion.parentNode.removeChild(notificacion);
+            }
+        }, 300);
+    }, 4000);
+}
+
+// Funciones auxiliares para tipos específicos de notificaciones
+function notificarExito(mensaje, duracion = 3000) {
+    mostrarNotificacion(mensaje, 'success', duracion);
+}
+
+function notificarError(mensaje, duracion = 5000) {
+    mostrarNotificacion(mensaje, 'error', duracion);
+}
+
+function notificarAdvertencia(mensaje, duracion = 4000) {
+    mostrarNotificacion(mensaje, 'warning', duracion);
+}
+
+function notificarInfo(mensaje, duracion = 3000) {
+    mostrarNotificacion(mensaje, 'info', duracion);
+}
+
+function notificarCargando(mensaje) {
+    return mostrarNotificacion(mensaje, 'loading');
+}
+
 // Función para mostrar la fecha/hora actual en la interfaz
 function mostrarFechaHoraActual() {
-    // Crear o actualizar el elemento de información de fecha/hora
     let infoFechaHora = document.getElementById('infoFechaHora');
 
     if (!infoFechaHora) {
         infoFechaHora = document.createElement('div');
         infoFechaHora.id = 'infoFechaHora';
 
-        // Insertar antes del formulario (asumiendo que existe un contenedor)
         const contenedor = form.parentNode;
         contenedor.insertBefore(infoFechaHora, form);
     }
@@ -132,12 +250,10 @@ function mostrarFechaHoraActual() {
 // Función para auto-completar el formulario con la fecha actual
 function autoCompletarFechaActual() {
     if (fechaHoraActual) {
-        // Verificar si los campos existen antes de asignar valores
         const campoDia = document.getElementById("dia");
         const campoMes = document.getElementById("mes");
 
         if (campoDia && campoMes) {
-            // Solo auto-completar si los campos están vacíos
             if (!campoDia.value) {
                 campoDia.value = fechaHoraActual.dia;
             }
@@ -148,7 +264,7 @@ function autoCompletarFechaActual() {
     }
 }
 
-// Función para usar fecha actual en el formulario (llamada por botón)
+// Función para usar fecha actual en el formulario
 function usarFechaActualEnFormulario() {
     if (fechaHoraActual) {
         const campoDia = document.getElementById("dia");
@@ -158,65 +274,27 @@ function usarFechaActualEnFormulario() {
             campoDia.value = fechaHoraActual.dia;
             campoMes.value = fechaHoraActual.mes;
 
-            // Enfocar el campo de actividad
             const campoActividad = document.getElementById("actividad");
             if (campoActividad) {
                 campoActividad.focus();
             }
 
-            mostrarNotificacion('Fecha actual aplicada al formulario', 'success');
+            notificarExito('Fecha actual aplicada al formulario');
         }
     }
 }
 
 // Función para actualizar fecha/hora manualmente
 async function actualizarFechaHora() {
-    mostrarNotificacion('Actualizando fecha y hora...', 'info');
+    notificarInfo('Actualizando fecha y hora...');
     await obtenerFechaHoraActual();
-    mostrarNotificacion('Fecha y hora actualizadas', 'success');
-}
-
-// Función para mostrar notificaciones
-function mostrarNotificacion(mensaje, tipo = 'info') {
-    // Crear elemento de notificación
-    const notificacion = document.createElement('div');
-    notificacion.className = 'notificacion';
-
-    // Colores según el tipo
-    const colores = {
-        success: '#4CAF50',
-        error: '#f44336',
-        warning: '#ff9800',
-        info: '#2196F3'
-    };
-
-    notificacion.style.background = colores[tipo] || colores.info;
-    notificacion.textContent = mensaje;
-
-    // Agregar animación CSS (solo si no existe)
-    if (!document.head.querySelector('style[data-notifications]')) {
-        const style = document.createElement('style');
-        style.setAttribute('data-notifications', 'true');
-        document.head.appendChild(style);
-    }
-
-    document.body.appendChild(notificacion);
-
-    // Remover después de 4 segundos
-    setTimeout(() => {
-        notificacion.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => {
-            if (notificacion.parentNode) {
-                notificacion.parentNode.removeChild(notificacion);
-            }
-        }, 300);
-    }, 4000);
+    notificarExito('Fecha y hora actualizadas correctamente');
 }
 
 // Función para obtener actividades del día actual
 function obtenerActividadesHoy() {
     if (!fechaHoraActual) {
-        mostrarNotificacion('Primero se debe cargar la fecha actual', 'warning');
+        notificarAdvertencia('Primero se debe cargar la fecha actual');
         return [];
     }
 
@@ -228,14 +306,16 @@ function obtenerActividadesHoy() {
     if (actividadesHoy.length > 0) {
         console.log(`📋 Actividades para hoy (${fechaHoraActual.dia} de ${fechaHoraActual.mes}):`, actividadesHoy);
         mostrarActividadesHoy(actividadesHoy);
+        notificarInfo(`Tienes ${actividadesHoy.length} actividad${actividadesHoy.length > 1 ? 'es' : ''} para hoy`);
     } else {
         console.log(`📋 No hay actividades programadas para hoy (${fechaHoraActual.dia} de ${fechaHoraActual.mes})`);
+        notificarInfo('No tienes actividades programadas para hoy');
     }
 
     return actividadesHoy;
 }
 
-// Función para mostrar actividades de hoy en una ventana modal o alert
+// Función para mostrar actividades de hoy
 function mostrarActividadesHoy(actividadesHoy) {
     let mensaje = `📅 Actividades para hoy ${fechaHoraActual.dia} de ${fechaHoraActual.mes}:\n\n`;
 
@@ -250,7 +330,6 @@ function mostrarActividadesHoy(actividadesHoy) {
 function guardarEnLocalStorage() {
     localStorage.setItem('agendaAnual', JSON.stringify(agenda));
 
-    // También guardar la última fecha/hora obtenida
     if (fechaHoraActual) {
         localStorage.setItem('ultimaFechaHora', JSON.stringify(fechaHoraActual));
     }
@@ -263,7 +342,6 @@ function cargarDesdeLocalStorage() {
         agenda = JSON.parse(agendaGuardada);
     }
 
-    // Cargar última fecha/hora si existe
     const ultimaFechaHora = localStorage.getItem('ultimaFechaHora');
     if (ultimaFechaHora) {
         fechaHoraActual = JSON.parse(ultimaFechaHora);
@@ -288,11 +366,9 @@ function renderAgenda() {
         return;
     }
 
-    // Resaltar actividades de hoy si conocemos la fecha actual
     agenda.forEach((item, index) => {
         const row = document.createElement("tr");
 
-        // Verificar si es la actividad de hoy
         const esHoy = fechaHoraActual &&
             item.dia === fechaHoraActual.dia &&
             item.mes === fechaHoraActual.mes;
@@ -314,7 +390,7 @@ function renderAgenda() {
     });
 }
 
-// Agregar actividad (modificado para incluir timestamp)
+// Agregar actividad con notificaciones mejoradas
 form.addEventListener("submit", e => {
     e.preventDefault();
     const mes = document.getElementById("mes").value;
@@ -323,7 +399,7 @@ form.addEventListener("submit", e => {
 
     // Validación de días
     if (dia < 1 || dia > mesesDias[mes]) {
-        alert(`⌚ ${mes} tiene solo ${mesesDias[mes]} días.`);
+        notificarError(`${mes} tiene solo ${mesesDias[mes]} días. Por favor, ingresa un día válido.`);
         return;
     }
     if (!actividad) actividad = "Sin actividad";
@@ -333,7 +409,7 @@ form.addEventListener("submit", e => {
     if (existente) {
         existente.actividad = actividad;
         existente.fechaModificacion = fechaHoraActual ? fechaHoraActual.timestamp : Date.now();
-        mostrarNotificacion(`Actividad actualizada para el ${dia} de ${mes}`, 'success');
+        notificarExito(`Actividad actualizada para el ${dia} de ${mes}`);
     } else {
         const nuevaActividad = {
             dia,
@@ -342,18 +418,16 @@ form.addEventListener("submit", e => {
             fechaCreacion: fechaHoraActual ? fechaHoraActual.timestamp : Date.now()
         };
         agenda.push(nuevaActividad);
-        mostrarNotificacion(`Nueva actividad agregada para el ${dia} de ${mes}`, 'success');
+        notificarExito(`Nueva actividad agregada para el ${dia} de ${mes}`);
     }
 
     guardarEnLocalStorage();
     renderAgenda();
     form.reset();
-
-    // Auto-completar fecha actual nuevamente
     autoCompletarFechaActual();
 });
 
-// Editar actividad
+// Editar actividad con notificaciones
 function editarActividad(index) {
     const item = agenda[index];
     const nuevaActividad = prompt(`Nueva actividad para el ${item.dia} de ${item.mes}:`, item.actividad);
@@ -362,28 +436,29 @@ function editarActividad(index) {
         agenda[index].fechaModificacion = fechaHoraActual ? fechaHoraActual.timestamp : Date.now();
         guardarEnLocalStorage();
         renderAgenda();
-        mostrarNotificacion('Actividad editada correctamente', 'success');
+        notificarExito('Actividad editada correctamente');
     }
 }
 
-// Eliminar actividad
+// Eliminar actividad con notificaciones
 function eliminarActividad(index) {
     if (confirm("¿Seguro que quieres eliminar esta actividad?")) {
         const actividad = agenda[index];
         agenda.splice(index, 1);
         guardarEnLocalStorage();
         renderAgenda();
-        mostrarNotificacion(`Actividad del ${actividad.dia} de ${actividad.mes} eliminada`, 'success');
+        notificarExito(`Actividad del ${actividad.dia} de ${actividad.mes} eliminada`);
     }
 }
 
 // Función para limpiar todas las actividades
 function limpiarTodasLasActividades() {
     if (confirm("¿Seguro que quieres eliminar TODAS las actividades? Esta acción no se puede deshacer.")) {
+        const cantidadEliminada = agenda.length;
         agenda = [];
         guardarEnLocalStorage();
         renderAgenda();
-        mostrarNotificacion('Todas las actividades han sido eliminadas', 'warning');
+        notificarAdvertencia(`${cantidadEliminada} actividades han sido eliminadas`);
     }
 }
 
@@ -395,27 +470,45 @@ window.actualizarFechaHora = actualizarFechaHora;
 window.usarFechaActualEnFormulario = usarFechaActualEnFormulario;
 window.obtenerActividadesHoy = obtenerActividadesHoy;
 
+// También hacer accesibles las funciones de notificación
+window.notificarExito = notificarExito;
+window.notificarError = notificarError;
+window.notificarAdvertencia = notificarAdvertencia;
+window.notificarInfo = notificarInfo;
+window.notificarCargando = notificarCargando;
+
 // Cargar datos e inicializar al cargar la página
 document.addEventListener('DOMContentLoaded', async function () {
     console.log('🚀 Iniciando agenda anual...');
 
-    // Cargar datos guardados
+    // Verificar si Toastify está cargado
+    if (typeof Toastify !== 'undefined') {
+        console.log('✅ Toastify cargado correctamente');
+        notificarInfo('🚀 Agenda anual iniciando...');
+    } else {
+        console.warn('⚠️ Toastify no está disponible, usando notificaciones básicas');
+    }
+
     cargarDesdeLocalStorage();
-
-    // Obtener fecha/hora actual desde API
     await obtenerFechaHoraActual();
-
-    // Renderizar tabla
     renderAgenda();
 
     // Mostrar actividades de hoy si existen
     setTimeout(() => {
-        const actividadesHoy = obtenerActividadesHoy();
+        const actividadesHoy = agenda.filter(item =>
+            fechaHoraActual &&
+            item.dia === fechaHoraActual.dia &&
+            item.mes === fechaHoraActual.mes
+        );
+
         if (actividadesHoy.length === 0) {
             console.log('✨ ¡Perfecto día para agregar nuevas actividades!');
+        } else {
+            console.log(`📋 Tienes ${actividadesHoy.length} actividad(es) para hoy`);
         }
     }, 1000);
 
+    notificarExito('✅ Agenda anual lista para usar');
     console.log('✅ Agenda anual lista para usar');
 });
 
@@ -423,5 +516,5 @@ document.addEventListener('DOMContentLoaded', async function () {
 setInterval(async () => {
     console.log('🔄 Actualizando fecha/hora automáticamente...');
     await obtenerFechaHoraActual();
-    renderAgenda(); // Re-renderizar para actualizar actividades de "hoy"
-}, 60000); // 60 segundos
+    renderAgenda();
+}, 60000);
