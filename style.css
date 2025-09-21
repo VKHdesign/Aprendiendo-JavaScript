@@ -28,16 +28,22 @@ table {
     background: white;
 }
 
-th,
-td {
+th {
     padding: 8px;
     border: 1px solid #dddddd;
     text-align: center;
     background-color: #666;
 }
 
-tbody {
-    color: white;
+td {
+    padding: 8px;
+    border: 1px solid #dddddd;
+    text-align: center;
+    /* background-color: #666; */
+}
+
+tbody tr td {
+    color: black;
 }
 
 button {
