@@ -11,7 +11,7 @@ const tableBody = document.querySelector("#agendaTable tbody");
 // Función para obtener fecha y hora actual desde API
 async function obtenerFechaHoraActual() {
     try {
-        const response = await fetch('http://worldtimeapi.org/api/timezone/America/Argentina/Buenos_Aires');
+        const response = await fetch('https://worldtimeapi.org/api/timezone/America/Argentina/Buenos_Aires');
 
         if (!response.ok) {
             throw new Error('Error en la respuesta de la API');
